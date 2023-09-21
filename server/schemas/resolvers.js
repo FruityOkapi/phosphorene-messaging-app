@@ -34,7 +34,7 @@ const resolvers = {
             const token = signToken(user);
             return { token, user };
         }, 
-        addFriend: async (parent, {username}, context) => {
+        addFriend: async (parent, Message, context) => {
             if(context.user) {
                 const request = await User.findOne({username});
     
@@ -43,16 +43,16 @@ const resolvers = {
                 }
 
                 const requestedUser = await request.findOneAndUpdate(
-                    {_id: request.user._id},
-                    {$addToSet: { [`friends`]: request.username},},
-                    {new: true, runValidators: true,}
+                    { user: request.user._id },
+                    { $addToSet: { notifications: Message.input} },
+                    { new: true, runValidators: true }
                 );
-                // probably add confirmation that request was sent rather than returning user
                 return requestedUser;
             }
 
             throw new AuthenticationError('You need to login!')
         },
+        // IT MIGHT BE Message.input.sentTo !!!!!  DONT FORGET TO FIX DELETE WITH THE SAME ISSUE IF IM RIGHT !!!!! CANT FIND OUT TIL I GET HOME
         addMessage: async (parent, Message, context) => {
             if(context.user) {
                 if(context.user.friends.find((el) => el.username === Message.sentTo)) {
@@ -85,9 +85,25 @@ const resolvers = {
             }
             throw new AuthenticationError('You need to log in!')
         },
-        // IMPLEMENT AFTER FINDING OUT HOW TO GET TO ID LOL
-        // removeMessage: async (parent, message, context) {},
-        // updateMessage: async (parent, message, context) {},
+        removeMessage: async (parent, Message, context) => {
+            if(context.user) {
+                return User.findOneAndDelete(
+                    { user: context.user._id,
+                      friends: Message.sentTo,
+                      chat: Message._id }
+                )
+            }
+        },
+        updateMessage: async (parent, Message, context) => {
+            if(context.user) {
+                return User.findOneAndUpdate(
+                    { user: context.user._id,
+                      friends: Message.sendTo,
+                      chat: Message._id },
+                    { Message }
+                )
+            }
+        },
 
     }
 };

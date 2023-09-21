@@ -24,10 +24,15 @@ const typeDefs = gql`
         seen: Boolean!
     }
 
-    input Message {
+    input MessageInput {
         content: String!
         sentBy: String!
         seen: Boolean!
+    }
+
+    type notifications {
+        acceptable: Boolean!
+        content: String!
     }
 
     type Auth {
@@ -42,10 +47,10 @@ const typeDefs = gql`
     type Mutation {
         addUser(username: String!, email: String!, password: String!): Auth
         login(email: String!, password: String!): Auth
-        addFriend(username: String!): User
-        addMessage(_id: ID!, content: String!, sentBy: String!, seen: Boolean!)
+        addFriend(username: String!, input: MessageInput): User
+        addMessage(input: MessageInput)
         removeFriend(username: String!): User
-        removeMessage(_id: ID!): User
+        removeMessage(input: MessageInput): User
     }
 `
 
